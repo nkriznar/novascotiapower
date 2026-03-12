@@ -1,0 +1,14 @@
+# Data files
+*.csv
+*.xlsx
+*.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+.pytest_cache/
