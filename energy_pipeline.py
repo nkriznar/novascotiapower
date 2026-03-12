@@ -11,7 +11,8 @@ Key upgrades over v1
 * Heating & Cooling Degree Days (HDD / CDD) from a configurable baseline.
 * Holiday proximity features (days until next / since last holiday).
 
-Author : Pranay (MSc CDA – Data Mining)
+Author : Nikola Kriznar (MSc CDA – Data Mining)
+Instructor: Pranay 
 Date   : 2026-03-12
 """
 
