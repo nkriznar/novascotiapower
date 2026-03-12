@@ -1,0 +1,31 @@
+# ===========================================================================
+# Nova Scotia Power – Energy Pipeline Configuration
+# ===========================================================================
+# All tuneable parameters live here. The pipeline reads this file at startup.
+# Edit values below — no code changes required.
+# ===========================================================================
+
+paths:
+  input_csv: "./nsp_electricity_dataset.csv"
+  train_output: "./train_data_engineered.csv"
+  test_output: "./test_data_engineered.csv"
+
+columns:
+  target: "consumption_kwh"
+  temperature: "temperature_c"
+  weather:
+    - "temperature_c"
+    - "wind_speed_kmh"
+    - "humidity_pct"
+
+split:
+  train_ratio: 0.80
+
+features:
+  lag_hours: [1, 24, 168]
+  rolling_windows: [24, 168]
+  base_temperature_c: 18.0
+
+holidays:
+  country: "CA"
+  province: "NS"
