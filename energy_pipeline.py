@@ -4,13 +4,6 @@ Energy Data Preparation & Feature Engineering Pipeline (v2)
 A production-grade, config-driven pipeline for cleaning, enriching, and
 splitting historical electricity consumption data for time-series forecasting.
 
-Key upgrades over v1
---------------------
-* All parameters loaded from ``config.yaml`` — zero hardcoded values.
-* Cyclical sine / cosine encoding for hour, day-of-week, and month.
-* Heating & Cooling Degree Days (HDD / CDD) from a configurable baseline.
-* Holiday proximity features (days until next / since last holiday).
-
 Author : Nikola Kriznar (MSc CDA – Data Mining)
 Instructor: Pranay 
 Date   : 2026-03-12
@@ -112,14 +105,17 @@ def load_and_clean(cfg: Config) -> pd.DataFrame:
 
 # ---- 2a. Lag Features ----------------------------------------------------
 def add_lag_features(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
-    """Create historical lag columns for the target variable.
+    """Create historical lag columns for the target variable, per region.
+
+    Uses ``groupby("region")`` so that each region's lags are computed
+    independently, preventing cross-region data leakage.
 
     The lag intervals are read from ``cfg["features"]["lag_hours"]``.
 
     Parameters
     ----------
     df : pd.DataFrame
-        DataFrame with the target column.
+        DataFrame with the target column and a *region* column.
     cfg : Config
         Pipeline configuration dictionary.
 
@@ -132,21 +128,24 @@ def add_lag_features(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     lag_hours: List[int] = cfg["features"]["lag_hours"]
 
     for lag in lag_hours:
-        df[f"lag_{lag}"] = df[target].shift(lag)
+        df[f"lag_{lag}"] = df.groupby("region")[target].shift(lag)
 
     return df
 
 
 # ---- 2b. Rolling Statistics ---------------------------------------------
 def add_rolling_features(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
-    """Create rolling-mean columns for the target variable.
+    """Create rolling-mean columns for the target variable, per region.
+
+    Uses ``groupby("region")`` so that each region's rolling statistics
+    are computed independently, preventing cross-region data leakage.
 
     Window sizes are read from ``cfg["features"]["rolling_windows"]``.
 
     Parameters
     ----------
     df : pd.DataFrame
-        DataFrame with the target column.
+        DataFrame with the target column and a *region* column.
     cfg : Config
         Pipeline configuration dictionary.
 
@@ -160,7 +159,11 @@ def add_rolling_features(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 
     for w in windows:
         df[f"rolling_mean_{w}h"] = (
-            df[target].rolling(window=w, min_periods=1).mean()
+            df.groupby("region")[target]
+            .rolling(window=w, min_periods=1)
+            .mean()
+            .droplevel("region")
+            .sort_index()
         )
 
     return df
