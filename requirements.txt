@@ -2,3 +2,6 @@ pandas
 numpy
 holidays
 pyyaml
+prophet
+scikit-learn
+matplotlib
