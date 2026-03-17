@@ -20,6 +20,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from model.model_pipeline import train_and_evaluate_model
+
 # ---------------------------------------------------------------------------
 # Type aliases
 # ---------------------------------------------------------------------------
@@ -434,6 +436,8 @@ def main() -> None:
     print(f"  Test rows  : {len(test_df):,}")
     print(f"  Columns    : {list(df.columns)}\n")
 
+    # model training and evaluation after data prep
+    train_and_evaluate_model()
 
 if __name__ == "__main__":
     main()

@@ -9,14 +9,17 @@ paths:
   input_csv: "./nsp_electricity_dataset.csv"
   train_output: "./train_data_engineered.csv"
   test_output: "./test_data_engineered.csv"
+  output_dir: "outputs"
 
 columns:
+  timestamp: "timestamp"
   target: "consumption_kwh"
   temperature: "temperature_c"
   weather:
     - "temperature_c"
     - "wind_speed_kmh"
     - "humidity_pct"
+  region: "region"
 
 split:
   train_ratio: 0.80
