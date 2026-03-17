@@ -92,21 +92,28 @@ def train_and_evaluate_model():
             print(f"Skipping {region}: no data")
             continue
 
-        prophet_train = train_region[[time_col, target_col]].rename(
-            columns={time_col: "ds", target_col: "y"}
-        ).sort_values("ds")
+        prophet_train = (
+            train_region[[time_col, target_col]]
+            .rename(columns={time_col: "ds", target_col: "y"})
+            .sort_values("ds")
+        )
 
-        prophet_test = test_region[[time_col, target_col]].rename(
-            columns={time_col: "ds", target_col: "y"}
-        ).sort_values("ds")
+        prophet_test = (
+            test_region[[time_col, target_col]]
+            .rename(columns={time_col: "ds", target_col: "y"})
+            .sort_values("ds")
+        )
 
+        # Train Prophet model
         model = train_prophet_model(prophet_train)
+
+        # Forecast on test timestamps only
         forecast = make_forecasts(model, prophet_test[["ds"]])
 
-        # save Prophet component plots
+        # Save Prophet component plots
         save_prophet_component_plots(model, forecast, region, plots_dir)
 
-        # keep important Prophet output columns
+        # Keep important Prophet output columns
         component_cols = ["ds", "yhat", "yhat_lower", "yhat_upper", "trend"]
         optional_cols = ["daily", "weekly", "yearly", "additive_terms", "multiplicative_terms"]
 
@@ -116,6 +123,7 @@ def train_and_evaluate_model():
 
         forecast_small = forecast[component_cols].copy()
 
+        # Merge actual and forecast
         result = prophet_test.merge(
             forecast_small,
             on="ds",
@@ -123,12 +131,17 @@ def train_and_evaluate_model():
         )
 
         result[region_col] = region
-        result["residual"] = result["y"] - result["yhat"]
 
+        # Residuals
+        result["residual"] = result["y"] - result["yhat"]
+        result["abs_residual"] = result["residual"].abs()
+
+        # Anomaly detection using residual
         result["anomaly"] = detect_anomalies_isolation_forest(
             result[["residual"]].fillna(0)
         )
 
+        # Forecast evaluation
         mae, rmse, mape = evaluate_forecast(result["y"], result["yhat"])
 
         metrics_rows.append({
@@ -138,6 +151,7 @@ def train_and_evaluate_model():
             "mape": mape
         })
 
+        # Rename columns back for output
         result = result.rename(columns={
             "ds": time_col,
             "y": target_col
@@ -145,9 +159,11 @@ def train_and_evaluate_model():
 
         safe_region = str(region).replace("/", "_").replace("\\", "_").replace(" ", "_")
 
+        # Save region-level forecast CSV
         region_csv_path = os.path.join(output_dir, f"forecast_{safe_region}.csv")
         result.to_csv(region_csv_path, index=False)
 
+        # Save region plot
         plot_file = os.path.join(plots_dir, f"forecast_{safe_region}.png")
         plot_region_results(
             df=result,
@@ -168,15 +184,52 @@ def train_and_evaluate_model():
         available_components = [c for c in ["trend", "daily", "weekly", "yearly"] if c in result.columns]
         print(f"Saved Prophet components for {region}: {available_components}")
 
+    # -------------------------------------------------
+    # Combine all region predictions
+    # -------------------------------------------------
     if all_predictions:
         predictions_df = pd.concat(all_predictions, ignore_index=True)
+
         combined_forecast_path = os.path.join(output_dir, "forecast_predictions_all_regions.csv")
         predictions_df.to_csv(combined_forecast_path, index=False)
         print(f"\nCombined forecast CSV saved: {combined_forecast_path}")
+
+        # -------------------------------------------------
+        # Save anomaly events (only anomaly rows)
+        # -------------------------------------------------
+        anomaly_events = predictions_df[predictions_df["anomaly"] == 1].copy()
+
+        anomaly_events_path = os.path.join(output_dir, "anomaly_events.csv")
+        anomaly_events.to_csv(anomaly_events_path, index=False)
+        print(f"Anomaly events CSV saved: {anomaly_events_path}")
+
+        # -------------------------------------------------
+        # Save anomaly summary by region
+        # -------------------------------------------------
+        anomaly_summary = (
+            predictions_df.groupby(region_col)
+            .agg(
+                total_points=("anomaly", "count"),
+                anomaly_count=("anomaly", "sum")
+            )
+            .reset_index()
+        )
+
+        anomaly_summary["anomaly_rate"] = (
+            anomaly_summary["anomaly_count"] / anomaly_summary["total_points"]
+        )
+
+        summary_path = os.path.join(output_dir, "anomaly_summary_by_region.csv")
+        anomaly_summary.to_csv(summary_path, index=False)
+        print(f"Anomaly summary CSV saved: {summary_path}")
+
     else:
         predictions_df = pd.DataFrame()
         print("\nNo prediction results generated.")
 
+    # -------------------------------------------------
+    # Save forecast metrics
+    # -------------------------------------------------
     metrics_df = pd.DataFrame(metrics_rows)
 
     if not metrics_df.empty:
