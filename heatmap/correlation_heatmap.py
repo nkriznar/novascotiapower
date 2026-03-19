@@ -322,7 +322,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
+def run_heatmap() -> None:
     args = parse_args()
 
     # ── Locate repo root and config.yaml ────────────────────────────────────
@@ -359,8 +359,8 @@ def main() -> None:
     corr = load_data(cfg)
     plot_feature_influence(corr, cfg, out_dir)
     print_summary(corr, cfg)
-    print(f"\n✅  Done – chart saved to: {out_dir.resolve()}")
+    print(f"\n  Done – chart saved to: {out_dir.resolve()}")
 
 
 if __name__ == "__main__":
-    main()
+    run_heatmap()
