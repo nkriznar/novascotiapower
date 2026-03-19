@@ -1,10 +1,3 @@
-# ===========================================================================
-# Nova Scotia Power – Energy Pipeline Configuration
-# ===========================================================================
-# All tuneable parameters live here. The pipeline reads this file at startup.
-# Edit values below — no code changes required.
-# ===========================================================================
-
 paths:
   input_csv: "./nsp_electricity_dataset.csv"
   train_output: "./train_data_engineered.csv"
