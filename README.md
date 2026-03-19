@@ -180,7 +180,7 @@ Includes automatic turning point detection
 
 ---
 
-## (Optional) Feature Influence (Heatmap Module)
+## (Optional) Feature Influence
 
 This module answers:
 
