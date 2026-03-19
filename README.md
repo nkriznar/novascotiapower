@@ -105,7 +105,7 @@ Two CSV files (excluded from the repo via `.gitignore`):
 
 ### Anomaly Detection
 
-Anomalies are detected based on **forecast residuals**, not raw data. And normalized before Anomaly Detection.
+Anomalies are detected based on **forecast residuals**, not raw data. And data will be normalized before Anomaly Detection.
 
 ## residual = actual − predicted
 
@@ -122,7 +122,7 @@ Anomalies are detected based on **forecast residuals**, not raw data. And normal
 
 ---
 
-## ⚙️ Model Pipeline
+## Model Pipeline
 
 The full workflow is automated in:
 
@@ -140,7 +140,7 @@ The full workflow is automated in:
 
 ---
 
-### 📁 Outputs
+### Outputs
 
 | File                                   | Description        |
 | -------------------------------------- | ------------------ |
