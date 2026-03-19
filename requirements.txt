@@ -1,7 +1,10 @@
-pandas
 numpy
-holidays
-pyyaml
-prophet
-scikit-learn
+pandas
 matplotlib
+PyYAML
+holidays
+scikit-learn
+statsmodels
+prophet
+cmdstanpy
+plotly
